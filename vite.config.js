@@ -3,10 +3,10 @@ import solidPlugin from 'vite-plugin-solid';
 
 export default defineConfig({
   plugins: [solidPlugin()],
+  base: "/diffusion-blog/",
   server: {
     port: 3000,
   },
-  base: "/diffusion-blog/",
   build: {
     target: 'esnext',
   },
