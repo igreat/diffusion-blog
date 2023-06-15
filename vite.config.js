@@ -8,6 +8,6 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    base: "/diffusion-blog/"
+    base: "diffusion-blog"
   },
 });
