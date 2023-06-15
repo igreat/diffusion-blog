@@ -1,0 +1,42 @@
+@import 'katex/dist/katex.min.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #f7fafc;
+  color: #1a202c;
+}
+
+@layer utilities {
+  .prose-custom {
+      @apply prose text-xl leading-8 text-black mx-auto p-6 space-y-6;
+  }
+}
+
+.prose-custom {
+  font-family: 'Georgia', serif;
+}
+
+@layer components {
+  .prose-custom p {
+      @apply text-gray-700;
+  }
+
+  .prose-custom h1 {
+      @apply text-4xl text-gray-900;
+  }
+
+  .table-of-contents-list a {
+     /* make line spacing smaller */
+      @apply no-underline text-base;
+  }
+
+  .table-of-contents-list a:hover {
+      @apply text-blue-500;
+  }
+
+  .table-of-contents-list li {
+      @apply leading-none;
+  }
+}
