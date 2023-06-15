@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 
-// TODO: before my presentation on June 8, make sure to have styled this page with pictures and everything
+// FIXME: the assets don't seem to work in build mode. 
 export default function Home() {
     return <div class="prose-custom">
         <h1 class="text-3xl font-bold mx-auto">A Mathematical Dive Into Diffusion Models</h1>
