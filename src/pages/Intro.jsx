@@ -21,7 +21,7 @@ export default function Intro() {
             </p>
             <img
                 class="mx-auto max-w-[50%]"
-                src="src/assets/noised-images-intro/lena/lena-14.png"
+                src="/diffusion-blog/src/assets/noised-images-intro/lena/lena-14.png"
             />
             <p>
                 As humans, we can distinguish between the noise and the meaningful part of the image. This is because we understand what a natural image of a woman should look like.
@@ -31,11 +31,11 @@ export default function Intro() {
             <div class="justify-center">
                 <img
                     class="max-w-[50%] inline !mt-0 !mb-0"
-                    src="src/assets/noised-images-intro/lena/lena-14.png"
+                    src="/diffusion-blog/src/assets/noised-images-intro/lena/lena-14.png"
                 />
                 <img
                     class="max-w-[50%] inline !mt-0 !mb-0"
-                    src="src/assets/noised-images-intro/lena/lena-1.png"
+                    src="/diffusion-blog/src/assets/noised-images-intro/lena/lena-1.png"
                 />
             </div>
             <p>
@@ -43,7 +43,7 @@ export default function Intro() {
             </p>
             <img
                 class="mx-auto max-w-[50%]"
-                src="src/assets/moon-face.jpg"
+                src="/diffusion-blog/src/assets/moon-face.jpg"
             />
             <p>
                 But why is this technique called diffusion? The core concept behind diffusion models is inspired by the thermodynamics of gas molecules. In this natural phenomenon, molecules tend to move from areas of high density to those with lower density, a process known as diffusion. In the realm of physics, this idea is closely related to the principle that entropy in the universe is always on the rise. When we look at it through the lens of information theory, it translates to a gradual loss of information due to the constant presence of noise. <strong>actually there’s more to the story here</strong>.
@@ -59,7 +59,7 @@ export default function Intro() {
 // TODO: make this visualization similar to how I made it in the slides
 function DiffusionSlider() {
     const num_images = 20;
-    const imageUrl = (i) => `src/assets/noised-images-intro/astronaut/astronaut-${num_images - parseInt(i) + 2}.jpg`
+    const imageUrl = (i) => `/diffusion-blog/src/assets/noised-images-intro/astronaut/astronaut-${num_images - parseInt(i) + 2}.jpg`
 
     const slider = new Slider("diffusion step", 1, num_images, 1, 1);
     const [img, setImg] = createSignal(imageUrl(1));

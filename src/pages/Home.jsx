@@ -10,7 +10,7 @@ export default function Home() {
             </p>
         </div>
         <div class="flex flex-row justify-center">
-            <A class="text-2xl px-4 py-2 leading-none rounded-lg !text-gray-400 bg-gray-900 hover:bg-gray-500 hover:!text-gray-900 !no-underline" href="/intro">Go to Introduction</A>
+            <A class="text-2xl px-4 py-2 leading-none rounded-lg !text-gray-400 bg-gray-900 hover:bg-gray-500 hover:!text-gray-900 !no-underline" href="/diffusion-blog/intro">Go to Introduction</A>
         </div>
     </div>
 
