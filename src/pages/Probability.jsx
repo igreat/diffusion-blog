@@ -60,7 +60,7 @@ export default function Probability() {
             <p>
                 The implication <T>{"A \\implies B"}</T> can be understood as: "if it rains, then the street must be wet”. Consequently, the statement <T>{"\\neg{B} \\implies \\neg{A}"}</T> holds, which can be expressed in simpler terms as: “if the street is not wet, then it can't have rained"
             </p>
-            <img src="/assets/rain.jpeg" alt="rain diffusion art" class="mx-auto max-w-[67%]" />
+            <img src="assets/rain.jpeg" alt="rain diffusion art" class="mx-auto max-w-[67%]" />
             <p>
                 While this deductive reasoning provides us with absolute certainty, it falls short in addressing the plausibility of events. Deductive reasoning has its limitations; it can’t tell us which scenarios are more plausible than others. In real-world situations, we often grapple with varying degrees of plausibility. To navigate this uncertainty, we need a framework that can help us quantify and reason with probabilities. This is where probability theory comes in, providing us with a systematic approach to quantifying and reasoning with uncertainty.
             </p>
