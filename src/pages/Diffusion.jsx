@@ -60,7 +60,12 @@ export default function Diffusion() {
             </p>
             <p>
                 <T displayMode="true">
-                    {"\\begin{align*} q(\\mathbf{x}_1, \\ldots, \\mathbf{x}_T \\mid \\mathbf{x}_0) &= q(\\mathbf{x}_1 \\mid \\mathbf{x}_0) q(\\mathbf{x}_2 \\mid \\mathbf{x}_1, \\mathbf{x}_0) q(\\mathbf{x}_3 \\mid \\mathbf{x}_2, \\mathbf{x}_1, \\mathbf{x}_0) \\ldots q(\\mathbf{x}_T \\mid \\mathbf{x}_{T-1}, \\ldots, \\mathbf{x}_0) \\\\ &= q(\\mathbf{x}_1 \\mid \\mathbf{x}_0) q(\\mathbf{x}_2 \\mid \\mathbf{x}_1) q(\\mathbf{x}_3 \\mid \\mathbf{x}_2) \\ldots q(\\mathbf{x}_T \\mid \\mathbf{x}_{T-1}) \\\\ &= \\prod_{t=1}^T q(\\mathbf{x}_t \\mid \\mathbf{x}_{t-1}) \\end{align*}"}
+                    {`
+                    \\begin{align*} 
+                        q(\\mathbf{x}_1, \\ldots, \\mathbf{x}_T \\mid \\mathbf{x}_0) &= q(\\mathbf{x}_1 \\mid \\mathbf{x}_0) q(\\mathbf{x}_2 \\mid \\mathbf{x}_1, \\mathbf{x}_0) \\ldots q(\\mathbf{x}_T \\mid \\mathbf{x}_{T-1}, \\ldots, \\mathbf{x}_0) \\ \\text{(chain rule)} \\\\ 
+                        &= q(\\mathbf{x}_1 \\mid \\mathbf{x}_0) q(\\mathbf{x}_2 \\mid \\mathbf{x}_1) \\ldots q(\\mathbf{x}_T \\mid \\mathbf{x}_{T-1}) \\ \\text{(markov property)} \\\\ 
+                        &= \\prod_{t=1}^T q(\\mathbf{x}_t \\mid \\mathbf{x}_{t-1}) 
+                    \\end{align*}`}
                 </T>
             </p>
             <p>
@@ -75,7 +80,7 @@ export default function Diffusion() {
             </p>
             <p class="text-center bg-black"><strong class="!text-zinc-50"> TODO: *INSERT ILLUSTRATION WHERE USER ADDS NOISE BY PRESSING A BUTTON AND GETS THE CHANCE TO EDIT BETA_MIN AND BETA_MAX AND RESET, PERHAPS ALSO DISPLAY THE SCHEDULER AS A GRAPH, OF BOTH VARIANCE AND MEAN. MAYBE ADD COS SCHEDULER AS A CHOICE* </strong></p>
             <p>
-                It’s quite tedious to try to add noise step by step until we get desired time step <T>t</T>. There is a way to get the noisy image at time step <T>t</T> from <T>{"\\mathbf{x}_0"}</T> in just one computation. Recall that using the reparametrization step, sampling from a gaussian distribution <T>{"\\mathcal{N}(\\mathbf{x}_t; \\mu, \\sigma)"}</T> can be done as follows:
+                It’s quite tedious to add noise step by step until we get desired time step <T>t</T>. There is a way to get the noisy image at time step <T>t</T> from <T>{"\\mathbf{x}_0"}</T> in just one computation. Recall that using the reparametrization step, sampling from a gaussian distribution <T>{"\\mathcal{N}(x; \\mu, \\sigma)"}</T> can be done as follows:
             </p>
             <p>
                 <T displayMode="true">
@@ -83,7 +88,7 @@ export default function Diffusion() {
                 </T>
             </p>
             <p>
-                We can use this concept to sample from our distribution <T>{"q(\\mathbf{x}_t \\mid \\mathbf{x}_0)"}</T> by sampling from a unit Gaussian distribution <T>{"\\mathcal{N}(\\mathbf{0}, \\mathbf{I})"}</T> and transforming it as follows:
+                We can use this concept to sample from our distribution <T>{"q(\\mathbf{x}_t \\mid \\mathbf{x}_{t-1})"}</T> by sampling from a unit Gaussian distribution <T>{"\\mathcal{N}(\\mathbf{0}, \\mathbf{I})"}</T> and transforming it as follows:
             </p>
             <T displayMode="true">
                 {"\\mathbf{x}_t = \\sqrt{1 - \\beta_t} \\mathbf{x}_{t - 1} + \\sqrt{\\beta_t} \\epsilon_{t-1} \\text{ where } \\epsilon_{t-1} \\sim \\mathcal{N}(\\mathbf{0}, \\mathbf{I})"}
@@ -106,11 +111,11 @@ export default function Diffusion() {
             <ul>
                 <li>The new mean equal to the sum of the two means (both 0 in this case)</li>
                 <li>The variance equal to the sum of the two variances <T>{"\\alpha_t (1 - \\alpha_{t-1}) + (1 - \\alpha_{t})"}</T></li>
-                <li>Thus, the new standard deviation is <T>{"\\sqrt{\\alpha_t (1 - \\alpha_{t-1}) + (1 - \\alpha_{t})}"}</T></li>
+                <li>Thus, the new standard deviation is <T>{"\\sqrt{\\alpha_t (1 - \\alpha_{t-1}) + (1 - \\alpha_{t})} = \\sqrt{1 - \\alpha_{t}\\alpha_{t-1}}"}</T></li>
             </ul>
             <p>Let <T>{"\\bar{\\epsilon}_{t-2}"}</T> be the merged version of <T>{"\\epsilon_{t-2}"}</T> and <T>{"\\epsilon_{t-1}"}</T> such that it's also sampled from <T>{"\\mathcal{N}(\\mathbf{0}, \\mathbf{I})"}</T>. Therefore, we get this:</p>
             <T displayMode="true">
-                {"\\mathbf{x}_t = \\sqrt{\\alpha_t \\alpha_{t-1}} \\mathbf{x}_{t - 2} + \\sqrt{\\alpha_t (1 - \\alpha_{t-1})} \\bar{\\epsilon}_{t-2}"}
+                {"\\mathbf{x}_t = \\sqrt{\\alpha_t \\alpha_{t-1}} \\mathbf{x}_{t - 2} +  \\sqrt{1 - \\alpha_{t}\\alpha_{t-1}} \\bar{\\epsilon}_{t-2}"}
             </T>
             <p>If we recursively apply this, we get:</p>
             <T displayMode="true">
