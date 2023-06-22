@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import Slider from "../utils/Slider";
 import { createEffect, createSignal, onMount } from "solid-js";
 
+// TODO: make KL divergence non slanted
 export default function Diffusion() {
     const [expanded, setExpanded] = createSignal(false);
 
@@ -126,7 +127,7 @@ export default function Diffusion() {
             </p>
             <p>
                 <T displayMode="true">
-                    {"q(\\mathbf{x}_t \\mid \\mathbf{x}_0) = \\mathcal{N}(\\mathbf{x}_t; \\sqrt{\\bar{\\alpha}_t} \\mathbf{x}_{0}, \\sqrt{1 - \\bar{\\alpha}_t} \\mathbf{I})"}
+                    {"q(\\mathbf{x}_t \\mid \\mathbf{x}_0) = \\mathcal{N}(\\mathbf{x}_t; \\sqrt{\\bar{\\alpha}_t} \\mathbf{x}_{0}, (1 - \\bar{\\alpha}_t) \\mathbf{I})"}
                 </T>
             </p>
             <p>
@@ -159,10 +160,93 @@ export default function Diffusion() {
             <p>
                 Where <T>{"\\mathbf{x}_{0:T} = \\mathbf{x}_0, \\mathbf{x}_1, \\dots, \\mathbf{x}_T"}</T>.
             </p>
-            <h2 id="objective-function">The Objective Function (Variational Lower Bound)</h2>
-        </article>
-        <footer>
-            <div class="h-80"></div>
-        </footer>
+            <h2 id="objective-function">The Objective Function</h2>
+            <p>
+                We'll now walk through the objective function that guides the training of the reverse diffusion process. From earlier, we discussed how our goal is to approximate <T>{"q(\\mathbf{x})"}</T>. <T>{"q(\\mathbf{x})"}</T> will naturally assign higher probabilities to images observed in our training dataset <T>{"\\mathbf{x}_0"}</T>. Thus, it's a reasonable objective to maximize <T>{"p_{\\theta}(\\mathbf{x}_{0})"}</T> — the likelihood our model assigns to the training images.
+            </p>
+            <h3 id="intractability">Intractability</h3>
+            <p>
+                To directly compute <T>{"p_{\\theta}(\\mathbf{x}_{0})"}</T>, we have to marginalize over all possible <T>{"\\mathbf{x}_{1:T}"}</T> (all possible trajectories that arrive to <T>{"\\mathbf{x}_0"}</T> when starting from random noise):
+            </p>
+            <T displayMode="true">
+                {"p_{\\theta}(\\mathbf{x}_{0}) = \\int_{\\mathbf{x}_{1:T}} p_{\\theta}(\\mathbf{x}_{0:T}) d\\mathbf{x}_{1:T} \\ \\text{(law of total probability)}"}
+            </T>
+            <p>
+                This is intractable, there is no closed form solution to this integral.
+            </p>
+            <h3 id="variational-lower-bound">Variational Lower Bound</h3>
+            <p>
+                We instead resort to maximizing the variational lower bound (VLB) of <a href="#log-note"><T>{"\\log{p_{\\theta}(\\mathbf{x}_{0})}"}</T>*</a>. The VLB loss <T>{"L_{\\text{VLB}}"}</T> (which we aim to minimize rather than maximize, hence it's the negative of the VLB) can be derived to be the following:
+            </p>
+            <T displayMode="true">
+                {`
+                \\begin{align*} 
+                    L_{\\text{VLB}} &= L_{T} + L_{T - 1} + \\dots + L_{0} \\\\
+                    &\\text{where ... } \\\\
+                    L_0 &= - \\log p_{\\theta}(\\mathbf{x}_{0} \\mid \\mathbf{x}_{1}) \\\\
+                    L_t &= D_{\\text{KL}}\\left[q(\\mathbf{x}_{t} \\mid \\mathbf{x}_{t+1}, \\mathbf{x}_0) \\ || \\ p_{\\theta}(\\mathbf{x}_{t} \\mid \\mathbf{x}_{t+1})\\right] \\ \\text{for } t = 1, \\dots, T-1 \\\\
+                    L_T &= D_{\\text{KL}}\\left[q(\\mathbf{x}_{T} \\mid \\mathbf{x}_0) \\ || \\ p(\\mathbf{x}_T)\\right]
+                \\end{align*}
+                `}
+            </T>
+            <ul>
+                <li>
+                    <T>{"L_0"}</T> can be interpreted as the reconstruction loss of the reverse process.
+                </li>
+                <li>
+                    <T>{"L_t"}</T> gives us how close our model's distribution for the reverse process is to to the true distribution of the reverse process, when conditioned on <T>{"\\mathbf{x}_0"}</T>.
+                </li>
+                <li>
+                    <T>{"L_T"}</T> is constant since the forward process is fixed and <T>{"\\mathbf{x}_T"}</T> assumed to be unit gaussian noise. We thus ignore it when optimizing for the most optimal model.
+                </li>
+            </ul>
+            <p>
+                Both <T>{"L_0"}</T> and <T>{"L_t"}</T> can be computed analytically. <T>{"L_0"}</T> is the negative log likelihood of a gaussian distribution, which has a closed form solution. <T>{"L_t"}</T> is the KL divergence between two gaussian distributions, which also has a closed form solution.
+            </p>
+            <p>
+                I won't get into the derivation behind the VLB because it's mostly tedious algebraic manipulations and tricks. For those interested in every tiny detail, I highly recommend <a href="https://lilianweng.github.io/posts/2021-07-11-diffusion-models/">Lilian Weng's wonderful blog post on diffusion models</a> that goes through the tedious derivations that lead to <T>{"L_{\\text{VLB}}"}</T>.
+            </p>
+            <h3 id="simple-loss">A Simpler Objective Function</h3>
+            <p>
+                Although this VLB loss works just fine and can lead to good results, we can further derive a simpler objective function that is empirically easier to train with (it still aims to maximize <T>{"\\log{p_{\\theta}(\\mathbf{x}_{0})}"}</T>). The simpler objective function is the following:
+            </p>
+            <T displayMode="true">
+                {`
+                \\begin{align*}
+                    L_{\\text{simple}} &= \\mathrm{E}_{t, \\mathbf{x}_{0}, \\epsilon}\\left[\\lVert \\epsilon_{t} - \\epsilon_{\\theta}(\\mathbf{x}_{t}, t) \\rVert^2 \\right] \\\\
+                    &= \\mathrm{E}_{t, \\mathbf{x}_{0}, \\epsilon}\\left[\\lVert \\epsilon_{t} - \\epsilon_{\\theta}(\\sqrt{\\bar{\\alpha}}\\mathbf{x_0} + \\sqrt{1 - \\bar{\\alpha}} \\epsilon_{t}, t) \\rVert^2 \\right] \\\\
+                \\end{align*}
+                `}
+            </T>
+            <p>
+                <T>{"L_{\\text{simple}}"}</T> is the mean squared error between the real noise <T>{"\\epsilon_{t}"}</T> (what we know we get from the forward process) and <T>{"\\epsilon_{\\theta}(\\mathbf{x}_{t}, t)"}</T> (what the model thinks the noise is). The reverse process now becomes a simple regression problem, where we aim to predict the noise that was added to the image at each step. During inference, we iteratively subtract the predicted noise from the noisy image to eventually get back the original image.
+            </p>
+            <p>
+                The whole training and inference algorithms can now be done as follows:
+            </p>
+            <img
+                class="mx-auto w-full"
+                src="assets/DDPM training and sampling.png"
+            />
+            {/* TODO: cite this image */}
+            <h2 id="results-conclusion">Results and Conclusion</h2>
+            <p>
+                At this point, I could go on and on about the various improvements we can make to improve results (including very interesting connections to stochastic differential equations), but I'll leave that for another time. For now, I'll just show some results from the models I trained using the exact formulation I've described above.
+            </p>
+            {/* TODO: train a model on various datasets and show results */}
+            <p>
+                For those interested in only the math and the conceptual side of diffusion, this is the end of the series. I truly hope you've enjoyed reading my blog posts as much as I've enjoyed writing them! We've explored some very interesting concepts and built a strong foundation on probability theory — a foundation that will help you understand many other concepts in all sorts of fields.
+            </p>
+            <p>
+                For those interested in the code and implementation side of diffusion, I've written a follow-up blog post that goes through the exact code I used to train the models and generate the results above.
+            </p>
+            {/* foot notes */}
+            <div class="text-base text-gray-500">
+                <div class="h-80"></div>
+                <p id="log-note">
+                    *The VLB loss technically aims to maximize the log likelihood of the training data, but since the logarithm is a monotically increasing function, a model that maximizes the log likelihood of the training data will also maximize the likelihood of the training data.
+                </p>
+            </div>
+        </article >
     </>
 }
